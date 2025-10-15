@@ -206,6 +206,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.7em;
+      align-items: center; /* center the items horizontally */
     }
     #planList li {
       background: linear-gradient(90deg, #16202c 60%, var(--neon-blue) 120%);
@@ -215,9 +216,10 @@
       border-radius: 9px;
       padding: 0.6em 1em;
       box-shadow: 0 2px 8px 0 #18ff8a33;
-      margin-left: 0;
-      margin-right: 0;
+      margin-left: auto;  /* center the block */
+      margin-right: auto; /* center the block */
       letter-spacing: 0.01em;
+      text-align: center; /* center the text */
     }
     #ctaBand {
       width: 98%;
@@ -354,35 +356,35 @@
         heroTitle:'Home Defense for Organizations',
         intro:'Policy‑backed planning, safe rooms, clear comms, lawful response.',
         plan:['Assessment & layered security','Safe zones & comms','Tools & legal standards','Scenario reps under stress','Aftercare & reporting'],
-        ctaPrimary:'Book Home Defense',
+        ctaPrimary:'Book a Training',
         ctaSecondary:'Request a Quote'
       },
       'conceal-carry': {
         heroTitle:'Conceal/Carry — Responsible, Compliant, Ready',
         intro:'Mindset first; de‑escalation always. Skills that hold up.',
         plan:['Legal foundations & policy','Equipment & safe storage','Draw, retention, malfunctions','Judgment & use‑of‑force decisions','Aftermath, reporting, refreshers'],
-        ctaPrimary:'Book Conceal/Carry',
+        ctaPrimary:'Book a Training',
         ctaSecondary:'Request a Quote'
       },
       'first-aid-training': {
         heroTitle:'First Aid — Do the Most Good, Fast',
         intro:'Stop bleeding. Open airways. Run the call.',
         plan:['Scene safety & 911','Bleeding, airway, breathing','CPR & AED','Medical & environmental incidents','Kits, hygiene, documentation'],
-        ctaPrimary:'Book First Aid',
+        ctaPrimary:'Book a Training',
         ctaSecondary:'Request a Quote'
       },
       'active-shooter-training': {
         heroTitle:'Active Shooter Response — Simple Actions, Real Impact',
         intro:'Prevention, quick decisions, coordinated response.',
         plan:['Prevention & early warning','Move • Barricade • Defend','911 & internal comms','Stop the Bleed','Reunification & recovery'],
-        ctaPrimary:'Book Active Shooter',
+        ctaPrimary:'Book a Training',
         ctaSecondary:'Request a Quote'
       },
       'situational-awareness': {
         heroTitle:'Situational Awareness — Time Buys Options',
         intro:'Read the room, spot anomalies, act early.',
         plan:['Baseline vs anomalies','Environmental scanning','Behavioral cues','OODA','Daily habits & sustainment'],
-        ctaPrimary:'Book Awareness',
+        ctaPrimary:'Book a Training',
         ctaSecondary:'Request a Quote'
       },
       'contact': {
@@ -445,7 +447,7 @@
       // Only render plan if present
       if (Array.isArray(copy.plan) && copy.plan.length) {
         const h2 = document.createElement('h2');
-        h2.textContent = 'Five-Point Plan';
+        h2.textContent = 'We will cover:';
         h2.style.marginBottom = '0.4em';
         h2.style.fontWeight = '600';
         h2.style.fontSize = '1.18em';
