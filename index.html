@@ -120,10 +120,8 @@
       box-sizing: border-box;
     }
     #heroImg {
-      max-width: 256px;
-      max-height: 256px;
-      width: auto;
-      height: auto;
+      width: 256px;     /* fixed size to prevent layout shift */
+      height: 256px;    /* fixed size to prevent layout shift */
       object-fit: contain;
       display: block;
       background: #181d23;
@@ -313,7 +311,7 @@
   </nav>
   <div class="hero" id="hero">
     <div class="hero-img-wrap">
-      <img id="heroImg" src="Safehaven logo.png" alt="SafeHaven Safety logo" draggable="false">
+      <img id="heroImg" src="Safehaven logo.png" alt="SafeHaven Safety logo" width="256" height="256" draggable="false">
     </div>
     <div class="hero-content">
       <h1 id="heroTitle">Corporate Safety Training that Sticks</h1>
