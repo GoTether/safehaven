@@ -230,41 +230,6 @@
       box-shadow: 0 0 0 2px var(--neon-blue), 0 0 12px 2px var(--neon-green);
     }
 
-    #ctaBand {
-      width: 98%;
-      max-width: 900px;
-      margin: 1.1em auto 2.1em auto;
-      background: var(--glass);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.1em 2em;
-      display: flex;
-      flex-direction: row;
-      gap: 1.2em;
-      justify-content: flex-start;
-      align-items: center;
-    }
-    .cta-btn {
-      background: linear-gradient(90deg, var(--neon-blue) 0%, var(--neon-green) 100%);
-      color: #181d23;
-      border: none;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 0.6em 1.4em;
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background 0.18s, box-shadow 0.18s, color 0.18s;
-      outline: none;
-      margin-right: 0.6em;
-    }
-    .cta-btn:focus, .cta-btn:hover {
-      background: linear-gradient(270deg, var(--neon-green) 0%, var(--neon-blue) 100%);
-      color: #11161a;
-      box-shadow: var(--focus);
-    }
-
     @media (max-width: 900px) {
       #planList { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     }
@@ -311,16 +276,10 @@
       #content {
         padding: 1.2em 1em 1em 1em;
       }
-      #ctaBand {
-        padding: 0.8em 1em;
-        flex-direction: column;
-        gap: 0.8em;
-        align-items: stretch;
-      }
     }
 
     /* Focus rings for accessibility */
-    .nav-tab:focus, #heroCta:focus, .cta-btn:focus {
+    .nav-tab:focus, #heroCta:focus {
       outline: 2px solid var(--neon-blue);
       outline-offset: 3px;
       box-shadow: var(--focus);
@@ -344,7 +303,6 @@
   </div>
   <div class="divider"></div>
   <div id="content"></div>
-  <div id="ctaBand"></div>
   <script>
     // --- Config ---
     const PAGES = [
@@ -483,42 +441,11 @@
         content.appendChild(ul);
       }
     }
-    function renderCtaBand(page) {
-      const ctaBand = document.getElementById('ctaBand');
-      ctaBand.innerHTML = '';
-      const copy = COPY[page];
-      if (!copy.ctaPrimary && !copy.ctaSecondary) {
-        ctaBand.style.display = 'none';
-        return;
-      }
-      ctaBand.style.display = 'flex';
-      if (copy.ctaPrimary) {
-        const btn1 = document.createElement('button');
-        btn1.className = 'cta-btn';
-        btn1.textContent = copy.ctaPrimary;
-        btn1.onclick = () => {
-          window.location.href = mailto(copy.ctaPrimary);
-        };
-        btn1.setAttribute('tabindex','0');
-        ctaBand.appendChild(btn1);
-      }
-      if (copy.ctaSecondary) {
-        const btn2 = document.createElement('button');
-        btn2.className = 'cta-btn';
-        btn2.textContent = copy.ctaSecondary;
-        btn2.onclick = () => {
-          window.location.href = mailto(copy.ctaSecondary);
-        };
-        btn2.setAttribute('tabindex','0');
-        ctaBand.appendChild(btn2);
-      }
-    }
     function renderPage() {
       const page = getHashPage();
       renderNav(page);
       renderHero(page);
       renderContent(page);
-      renderCtaBand(page);
       // Accessibility QA
       console.assert(document.querySelectorAll('[aria-current="page"]').length === 1, "Exactly one nav tab should have aria-current=page");
       // Plan QA
