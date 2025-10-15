@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SafeHaven Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <style>
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#0f141a;color:#e8f1f5;margin:0;padding:0}
+    header,main{max-width:1000px;margin:0 auto;padding:16px}
+    header{position:sticky;top:0;background:#13202b;box-shadow:0 2px 8px rgba(0,0,0,.35);z-index:10}
+    h1{margin:0 0 8px 0}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+    .field{display:flex;flex-direction:column;margin:8px 0;min-width:200px;flex:1}
+    .field>label{font-size:.9rem;margin-bottom:6px;opacity:.9}
+    input[type="text"],input[type="password"],textarea{background:#0f1820;color:#e8f1f5;border:1px solid #203241;border-radius:8px;padding:10px 12px;font-size:14px}
+    textarea{min-height:64px;resize:vertical}
+    button{background:#00eaff;border:none;color:#0f141a;border-radius:8px;padding:10px 14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+    button.secondary{background:#18ff8a}
+    button.link{background:transparent;color:#9bdafc;text-decoration:underline;box-shadow:none;padding:0}
+    section.page{background:#12202a;border:1px solid #203241;border-radius:12px;padding:14px;margin:12px 0}
+    .tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+    .tile .field{min-width:auto}
+    @media (max-width:900px){.tiles{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:600px){.tiles{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:420px){.tiles{grid-template-columns:1fr}}
+    small.muted{opacity:.75}
+    .danger{color:#ff8080}
+    .notice{background:#0f1820;border:1px solid #203241;border-radius:8px;padding:10px}
+    .row-tight{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SafeHaven Admin</h1>
+    <div class="notice">
+      <div class="row">
+        <div class="field" style="flex:2;min-width:260px">
+          <label>GitHub Personal Access Token (fine-grained, Contents: Read & Write for GoTether/safehaven)</label>
+          <input id="token" type="password" placeholder="ghp_... or fine-grained token">
+        </div>
+        <div class="field">
+          <label>Owner</label>
+          <input id="owner" type="text" value="GoTether">
+        </div>
+        <div class="field">
+          <label>Repo</label>
+          <input id="repo" type="text" value="safehaven">
+        </div>
+        <div class="field">
+          <label>Branch</label>
+          <input id="branch" type="text" value="main">
+        </div>
+      </div>
+      <div class="row-tight">
+        <button id="load">Load from GitHub</button>
+        <button id="save" class="secondary">Save to GitHub</button>
+        <button id="download">Download JSON</button>
+        <span class="danger"><strong>Note:</strong> This page is public if someone knows the URL. Only users with a valid token can save.</span>
+      </div>
+    </div>
+  </header>
+  <main>
+    <div id="status" class="notice">Status: Ready</div>
+
+    <section class="page">
+      <h2>Global Settings</h2>
+      <div class="field">
+        <label>Pages (id,label) — reorder/edit carefully</label>
+        <textarea id="pagesText" spellcheck="false" placeholder='[{"id":"home","label":"Home"}, ...]'></textarea>
+        <small class="muted">JSON array. The admin form below follows this order.</small>
+      </div>
+    </section>
+
+    <div id="pages"></div>
+  </main>
+
+<script>
+  // Defaults match current site; used if content.json does not exist yet.
+  const DEFAULT = {
+    pages: [
+      {id:'home',label:'Home'},
+      {id:'home-defense',label:'Home Defense'},
+      {id:'conceal-carry',label:'Conceal/Carry'},
+      {id:'first-aid-training',label:'First Aid Training'},
+      {id:'active-shooter-training',label:'Active Shooter Training'},
+      {id:'situational-awareness',label:'Situational Awareness'},
+      {id:'contact',label:'Contact'}
+    ],
+    images: {
+      'home':'Safehaven logo.png',
+      'home-defense':'Home Defense.png',
+      'conceal-carry':'conceal carry.png',
+      'first-aid-training':'First Aid.png',
+      'active-shooter-training':'Active Shooter Training.png',
+      'situational-awareness':'Situational Awareness.png',
+      'contact':'Safehaven logo.png'
+    },
+    content: {
+      'home': {
+        heroTitle:'Corporate Safety Training that Sticks',
+        intro:'Scenario‑driven courses for teams. Act fast, stay calm, decide well.',
+        plan:[],
+        ctaPrimary:'Book Training with Todd Krohn',
+        ctaSecondary:'Request a Quote'
+      },
+      'home-defense': {
+        heroTitle:'Home Defense for Organizations',
+        intro:'Policy‑backed planning, safe rooms, clear comms, lawful response.',
+        plan:['Assessment & layered security','Safe zones & comms','Tools & legal standards','Scenario reps under stress','Aftercare & reporting'],
+        ctaPrimary:'Book a Training', ctaSecondary:'Request a Quote'
+      },
+      'conceal-carry': {
+        heroTitle:'Conceal/Carry — Responsible, Compliant, Ready',
+        intro:'Mindset first; de‑escalation always. Skills that hold up.',
+        plan:['Legal foundations & policy','Equipment & safe storage','Draw, retention, malfunctions','Judgment & use‑of‑force decisions','Aftermath, reporting, refreshers'],
+        ctaPrimary:'Book a Training', ctaSecondary:'Request a Quote'
+      },
+      'first-aid-training': {
+        heroTitle:'First Aid — Do the Most Good, Fast',
+        intro:'Stop bleeding. Open airways. Run the call.',
+        plan:['Scene safety & 911','Bleeding, airway, breathing','CPR & AED','Medical & environmental incidents','Kits, hygiene, documentation'],
+        ctaPrimary:'Book a Training', ctaSecondary:'Request a Quote'
+      },
+      'active-shooter-training': {
+        heroTitle:'Active Shooter Response — Simple Actions, Real Impact',
+        intro:'Prevention, quick decisions, coordinated response.',
+        plan:['Prevention & early warning','Move • Barricade • Defend','911 & internal comms','Stop the Bleed','Reunification & recovery'],
+        ctaPrimary:'Book a Training', ctaSecondary:'Request a Quote'
+      },
+      'situational-awareness': {
+        heroTitle:'Situational Awareness — Time Buys Options',
+        intro:'Read the room, spot anomalies, act early.',
+        plan:['Baseline vs anomalies','Environmental scanning','Behavioral cues','OODA','Daily habits & sustainment'],
+        ctaPrimary:'Book a Training', ctaSecondary:'Request a Quote'
+      },
+      'contact': {
+        heroTitle:'Talk with Todd',
+        intro:'Tell us about your team, goals, and timing. Proposal in one business day.',
+        plan:[],
+        ctaPrimary:'Email Us', ctaSecondary:''
+      }
+    }
+  };
+
+  let model = JSON.parse(JSON.stringify(DEFAULT));
+
+  const el = {
+    token: document.getElementById('token'),
+    owner: document.getElementById('owner'),
+    repo: document.getElementById('repo'),
+    branch: document.getElementById('branch'),
+    load: document.getElementById('load'),
+    save: document.getElementById('save'),
+    download: document.getElementById('download'),
+    status: document.getElementById('status'),
+    pagesText: document.getElementById('pagesText'),
+    pagesWrap: document.getElementById('pages')
+  };
+
+  function setStatus(msg) { el.status.textContent = 'Status: ' + msg; }
+
+  function render() {
+    // Pages JSON
+    el.pagesText.value = JSON.stringify(model.pages, null, 2);
+    // Sections per page
+    el.pagesWrap.innerHTML = '';
+    model.pages.forEach(p => {
+      const id = p.id;
+      const c = model.content[id] || (model.content[id] = { heroTitle:'', intro:'', plan:[], ctaPrimary:'', ctaSecondary:'' });
+      const img = model.images[id] || '';
+
+      const sec = document.createElement('section');
+      sec.className = 'page';
+      sec.innerHTML = `
+        <h2>${p.label} <small class="muted">(${id})</small></h2>
+        <div class="field">
+          <label>Hero image filename (in repo)</label>
+          <input type="text" value="${img}" data-key="image">
+        </div>
+        <div class="field">
+          <label>Hero title</label>
+          <input type="text" value="${c.heroTitle||''}" data-key="heroTitle">
+        </div>
+        <div class="field">
+          <label>Intro</label>
+          <textarea data-key="intro">${c.intro||''}</textarea>
+        </div>
+        <div class="tiles">
+          ${[0,1,2,3,4].map(i => `
+            <div class="tile">
+              <div class="field">
+                <label>Tile ${i+1}</label>
+                <input type="text" value="${(c.plan&&c.plan[i])||''}" data-key="plan-${i}">
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Primary CTA</label>
+            <input type="text" value="${c.ctaPrimary||''}" data-key="ctaPrimary">
+          </div>
+          <div class="field">
+            <label>Secondary CTA</label>
+            <input type="text" value="${c.ctaSecondary||''}" data-key="ctaSecondary">
+          </div>
+        </div>
+      `;
+      // Wire inputs
+      sec.querySelectorAll('input,textarea').forEach(inp => {
+        inp.addEventListener('input', () => {
+          const k = inp.dataset.key;
+          if (k === 'image') {
+            model.images[id] = inp.value.trim();
+          } else if (k.startsWith('plan-')) {
+            const idx = parseInt(k.split('-')[1],10);
+            c.plan = c.plan || [];
+            c.plan[idx] = inp.value.trim();
+          } else {
+            c[k] = inp.value;
+          }
+          // Clean blank tiles at the end later on save
+        });
+      });
+      el.pagesWrap.appendChild(sec);
+    });
+  }
+
+  function collect() {
+    // Validate pages JSON
+    try {
+      const pagesParsed = JSON.parse(el.pagesText.value || '[]');
+      if (Array.isArray(pagesParsed) && pagesParsed.every(x => x.id && x.label)) {
+        model.pages = pagesParsed;
+      } else {
+        throw new Error('pages invalid');
+      }
+    } catch (e) {
+      alert('Pages JSON is invalid. Keeping previous.');
+    }
+    // Trim plan arrays
+    Object.keys(model.content).forEach(id => {
+      const c = model.content[id];
+      if (c && Array.isArray(c.plan)) {
+        // Keep first 5 non-empty items
+        c.plan = c.plan.map(x => (x||'').trim()).filter(Boolean).slice(0,5);
+      } else {
+        c.plan = [];
+      }
+    });
+    return model;
+  }
+
+  async function fetchJSON(url) {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+    return res.json();
+  }
+
+  function toBase64(str) {
+    const enc = new TextEncoder();
+    const bytes = enc.encode(str);
+    let binary = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(binary);
+  }
+
+  async function loadFromGitHub() {
+    setStatus('Loading content.json from GitHub…');
+    const owner = el.owner.value.trim();
+    const repo = el.repo.value.trim();
+    const branch = el.branch.value.trim();
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/content.json?ref=${encodeURIComponent(branch)}`;
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    });
+    if (res.status === 404) {
+      setStatus('content.json not found in repo; using defaults. You can Save to create it.');
+      model = JSON.parse(JSON.stringify(DEFAULT));
+      render();
+      return;
+    }
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error('Failed to load: ' + text);
+    }
+    const data = await res.json();
+    const content = JSON.parse(atob(data.content));
+    model = content;
+    // remember latest sha for save
+    model._sha = data.sha;
+    setStatus('Loaded from GitHub.');
+    render();
+  }
+
+  async function saveToGitHub() {
+    collect();
+    const owner = el.owner.value.trim();
+    const repo = el.repo.value.trim();
+    const branch = el.branch.value.trim();
+    const token = el.token.value.trim();
+    if (!token) { alert('Paste a GitHub token first'); return; }
+    const path = 'content.json';
+    const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${encodeURIComponent(branch)}`;
+    const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+
+    setStatus('Preparing commit…');
+    // Ensure we have latest sha (optional)
+    let sha = model._sha || null;
+    try {
+      const res = await fetch(getUrl, { headers: { 'Accept':'application/vnd.github+json', 'Authorization':'Bearer ' + token } });
+      if (res.ok) {
+        const data = await res.json();
+        sha = data.sha;
+      }
+    } catch (_) {}
+
+    const body = {
+      message: 'chore(content): update content.json via admin',
+      content: toBase64(JSON.stringify({ pages: model.pages, images: model.images, content: model.content }, null, 2)),
+      branch
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(putUrl, {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!putRes.ok) {
+      const text = await putRes.text();
+      throw new Error('Commit failed: ' + text);
+    }
+    const result = await putRes.json();
+    model._sha = result.content.sha;
+    setStatus('Saved to GitHub on ' + branch + '.');
+  }
+
+  function downloadJSON() {
+    collect();
+    const blob = new Blob([JSON.stringify({ pages: model.pages, images: model.images, content: model.content }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'content.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    setStatus('Downloaded content.json');
+  }
+
+  el.load.addEventListener('click', () => loadFromGitHub().catch(e => setStatus('Error: ' + e.message)));
+  el.save.addEventListener('click', () => saveToGitHub().catch(e => setStatus('Error: ' + e.message)));
+  el.download.addEventListener('click', downloadJSON);
+
+  // Try loading local content.json first; fall back to defaults.
+  (async function init() {
+    try {
+      const local = await fetchJSON('content.json');
+      model = local;
+      setStatus('Loaded local content.json.');
+    } catch {
+      model = JSON.parse(JSON.stringify(DEFAULT));
+      setStatus('Local content.json not found; using defaults.');
+    }
+    render();
+  })();
+</script>
+</body>
+</html>
